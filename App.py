@@ -1,16 +1,13 @@
 import streamlit as st
 import pandas as pd
-import seaborn as sns
 import matplotlib.pyplot as plt
 
 # Cache para acelerar o carregamento dos dados
-#@st.cache
 @st.cache_data
+# Carrega o CSV separado por ponto e vírgula
 def load_data(uploaded_file):
     return pd.read_csv(uploaded_file, sep=';')
-    
-    
-    ## df = pd.read_excel('caminho/para/arquivo.xls', engine='xlrd')
+
 
 def main():
     st.title("App de Análise Descritiva")
@@ -21,11 +18,12 @@ def main():
     - Matriz de correlação
     - Detecção de valores faltantes
     - Detecção de outliers (IQR)
-    """
-    )
+    """)
 
-    uploaded_file = st.file_uploader("TRATADO_Filtrado_teste.csv", type="csv")
-    if uploaded_file is not None:
+    uploaded_file = st.file_uploader("Selecione seu arquivo CSV", type="csv")
+    if uploaded_file is None:
+        st.info("Faça upload de um arquivo CSV para começar a análise.")
+    else:
         df = load_data(uploaded_file)
 
         # 1. Visualização inicial
@@ -42,31 +40,42 @@ def main():
         numeric_cols = df.select_dtypes(include=['int64','float64']).columns.tolist()
         for col in numeric_cols:
             fig, ax = plt.subplots()
-            sns.histplot(df[col].dropna(), kde=True, ax=ax)
+            ax.hist(df[col].dropna(), bins=30, edgecolor='black')
             ax.set_title(f'Distribuição de {col}')
+            ax.set_xlabel(col)
+            ax.set_ylabel('Frequência')
             st.pyplot(fig)
 
         # 3. Análise Bivariada
         st.header("3. Análise Bivariada")
         cat_cols = df.select_dtypes(include=['object']).columns.tolist()
         if len(cat_cols) >= 2:
-            x = st.selectbox("Variável Categórica X", cat_cols)
-            y = st.selectbox("Variável Categórica Y", cat_cols, index=1)
-            if x and y:
-                ct = pd.crosstab(df[x], df[y], normalize='index')
-                st.subheader(f'Cruzamento {x} vs {y} (proporção)')
-                st.dataframe(ct)
-                fig, ax = plt.subplots()
-                ct.plot(kind='bar', stacked=True, ax=ax)
-                ax.set_ylabel('Proporção')
-                st.pyplot(fig)
+            x = st.selectbox("Selecione a variável categórica X", cat_cols)
+            y = st.selectbox("Selecione a variável categórica Y", cat_cols, index=1)
+            ct = pd.crosstab(df[x], df[y], normalize='index')
+            st.subheader(f'Cruzamento {x} vs {y} (proporção)')
+            st.dataframe(ct)
+            fig, ax = plt.subplots()
+            ct.plot(kind='bar', stacked=True, ax=ax)
+            ax.set_ylabel('Proporção')
+            ax.set_xlabel(x)
+            plt.tight_layout()
+            st.pyplot(fig)
 
-        # 4. Correlação
+        # 4. Matriz de Correlação
         st.header("4. Matriz de Correlação")
         corr = df[numeric_cols].corr()
         st.dataframe(corr)
         fig, ax = plt.subplots()
-        sns.heatmap(corr, annot=True, cmap='coolwarm', fmt='.2f', ax=ax)
+        cax = ax.imshow(corr.values, interpolation='nearest', cmap='coolwarm')
+        fig.colorbar(cax)
+        ax.set_xticks(range(len(numeric_cols)))
+        ax.set_xticklabels(numeric_cols, rotation=45)
+        ax.set_yticks(range(len(numeric_cols)))
+        ax.set_yticklabels(numeric_cols)
+        for i in range(len(numeric_cols)):
+            for j in range(len(numeric_cols)):
+                ax.text(j, i, f"{corr.iloc[i, j]:.2f}", ha='center', va='center', color='black')
         st.pyplot(fig)
 
         # 5. Valores Faltantes
@@ -88,3 +97,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
