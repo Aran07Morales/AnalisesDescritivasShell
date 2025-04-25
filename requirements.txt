@@ -1,0 +1,4 @@
+Requiistos
+
+Ter instalado:streamlit, pandas, seaborn e matplotlib
+
