@@ -7,6 +7,9 @@ import matplotlib.pyplot as plt
 # Carrega o CSV separado por ponto e vírgula
 def load_data(uploaded_file):
     return pd.read_csv(uploaded_file, sep=';')
+    
+def load_data_from_url(https://drive.google.com/file/d/17CGFrn_iVcUhwmNF5d581MqY2vooi-1k/view?usp=sharing):
+    return pd.read_csv(https://drive.google.com/file/d/17CGFrn_iVcUhwmNF5d581MqY2vooi-1k/view?usp=sharing, sep=';')
 
 
 def main():
